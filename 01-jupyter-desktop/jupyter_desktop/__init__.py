@@ -3,7 +3,9 @@ import shlex
 from shutil import which
 import tempfile
 
-PORT = 5901
+VNC_PORT = 5911
+DISPLAY_NUMBER = 2
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 def setup_desktop():
@@ -29,25 +31,26 @@ def setup_desktop():
         ]
 
     vnc_command = ' '.join(shlex.quote(p) for p in (vnc_args + [
+        ':%s' %int(DISPLAY_NUMBER),
+        '-rfbport', '%s' %int(VNC_PORT),
         '-verbose',
         '-xstartup', os.path.join(HERE, 'share/xstartup'),
         '-geometry', '1680x1050',
         '-SecurityTypes', 'None',
         '-fg',
-        ':1',
     ]))
     return {
         'command': [
             'websockify', '-v',
             '--web', os.path.join(HERE, 'share/web/noVNC-1.2.0'),
             '--heartbeat', '30',
-            str(PORT),
+            str(VNC_PORT),
         ] + socket_args + [
             '--',
             '/bin/sh', '-c',
             f'cd {os.getcwd()} && {vnc_command}'
         ],
-        'port': PORT,
+        'port': VNC_PORT,
         'timeout': 30,
         'mappath': {'/': '/vnc_lite.html'},
         'new_browser_window': True
